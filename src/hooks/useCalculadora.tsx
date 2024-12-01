@@ -1,105 +1,94 @@
-import {useRef, useState, useEffect} from 'react';
+import { useRef, useState, useEffect } from "react";
 
-enum Operadores {
-    sumar = '+',
-    restar = '-',
-    multiplicar = '*',
-    dividir = '/',
+export enum Operadores {
+    sumar = "+",
+    restar = "-",
+    multiplicar = "*",
+    dividir = "/",
 }
 
-export const useCalculadora = () =>{
 
-    const [formula, setFormula] = useState('0');
-    const [numero, setNumero] = useState('0');
-    const [numeroAnterior, setNumeroAnterior] = useState('0');
+export const useCalculadora = () => {
+    const [formula, setFormula] = useState("0");
+    const [numero, setNumero] = useState("0");
+    const [numeroAnterior, setNumeroAnterior] = useState("0");
 
     const UltimaOperacion = useRef<Operadores>();
 
     useEffect(() => {
         if (UltimaOperacion.current) {
-            const primeraParteFormula = formula.split(' ').at(0);
-            setFormula(`${ primeraParteFormula} ${UltimaOperacion.current} ${numero}`);
+            const primeraParteFormula = formula.split(" ").at(0);
+            setFormula(`${primeraParteFormula} ${UltimaOperacion.current} ${numero}`);
         } else {
             setFormula(numero);
         }
-        
     }, [numero]);
 
-    useEffect(() =>{
+    useEffect(() => {
         const resultado = calcularResultado();
         setNumeroAnterior(`${resultado}`);
-
-    },[formula]);
+    }, [formula]);
 
     const clean = () => {
-        setFormula('0');
-        setNumero('0');
-        setNumeroAnterior('0');
-        UltimaOperacion.current = undefined;  
-    }
+        setFormula("0");
+        setNumero("0");
+        setNumeroAnterior("0");
+        UltimaOperacion.current = undefined;
+    };
 
     const cambiarSigno = () => {
-        if (numero.includes('-')) {
-            return setNumero(numero.replace('-',''));
+        if (numero.includes("-")) {
+            return setNumero(numero.replace("-", ""));
         } else {
-            return setNumero('-' + numero);
+            return setNumero("-" + numero);
         }
-
-    }
+    };
 
     const borrarDigito = () => {
-        let signo = '';
+        let signo = "";
         let numeroTemporal = numero;
 
-        if (numero.includes('-')) {
-            signo = '-';
+        if (numero.includes("-")) {
+            signo = "-";
             numeroTemporal = numero.substring(1);
         }
         if (numeroTemporal.length > 1) {
-            return setNumero(signo+ numeroTemporal.slice(0,-1));
+            return setNumero(signo + numeroTemporal.slice(0, -1));
         } else {
-            return setNumero('0');
+            return setNumero("0");
         }
-    }
+    };
 
     const establecerUltimoNumero = () => {
-        resultado();
-        if (numero.endsWith('.')) {
-            setNumeroAnterior(numero.slice(0,-1));
+        if (numero.endsWith(".")) {
+            setNumeroAnterior(numero.slice(0, -1));
+        } else {
+            setNumeroAnterior(numero);
         }
-        setNumeroAnterior(numero);
-        setNumero('0');
-    }
+        setNumero("0");
+    };
 
-    const operacionDividir = () => {
-        establecerUltimoNumero();
-        UltimaOperacion.current = Operadores.dividir;
-    }
+    const realizarOperacion = (operador: Operadores) => {
+        if (operador === Operadores.dividir && numero === "0") {
+            setFormula("ERROR"); // Manejo de división entre 0
+            setNumero("0");
+            UltimaOperacion.current = undefined;
+            return;
+        }
 
-    const operacionMultiplicar = () => {
         establecerUltimoNumero();
-        UltimaOperacion.current = Operadores.multiplicar;
-    }
-
-    const operacionRestar = () => {
-        establecerUltimoNumero();
-        UltimaOperacion.current = Operadores.restar;
-    }
-
-    const operacionSumar = () => {
-        establecerUltimoNumero();
-        UltimaOperacion.current = Operadores.sumar;
-    }
+        UltimaOperacion.current = operador;
+    };
 
     const calcularResultado = () => {
-        const [primerValor, operacion, segundoValor] = formula.split(' ');
+        const [primerValor, operacion, segundoValor] = formula.split(" ");
 
         const num1 = Number(primerValor);
         const num2 = Number(segundoValor);
 
         if (isNaN(num2)) return num1;
 
-        switch(operacion) {
+        switch (operacion) {
             case Operadores.sumar:
                 return num1 + num2;
 
@@ -110,59 +99,63 @@ export const useCalculadora = () =>{
                 return num1 * num2;
 
             case Operadores.dividir:
+                if (num2 === 0) return "ERROR"; // Manejo de división por 0
                 return num1 / num2;
 
             default:
-                throw new Error(`La operación ( ${operacion} ) no está implementada `)
+                throw new Error(`La operación (${operacion}) no está implementada`);
         }
-    }
+    };
 
     const resultado = () => {
         const resultado = calcularResultado();
+
+        if (resultado === "ERROR") {
+            setFormula("ERROR");
+            setNumero("0");
+            UltimaOperacion.current = undefined;
+            return;
+        }
+
         setFormula(`${resultado}`);
         UltimaOperacion.current = undefined;
-        setNumeroAnterior('0');
-    }
+        setNumeroAnterior("0");
+    };
 
     const construirNumero = (teclaNumero: string) => {
+        if (numero.includes(".") && teclaNumero === ".") return;
 
-        //Verificar si se escribe el punto decimal
-        if (numero.includes('.') && teclaNumero === '.') return;
-        
-        if (numero.startsWith('0') || numero.startsWith('-0')){
-            if (teclaNumero === '.') {
-                return setNumero(numero+ teclaNumero);
-            }
-
-            if (teclaNumero ==='0' && numero.includes('.')) {
+        if (numero.startsWith("0") || numero.startsWith("-0")) {
+            if (teclaNumero === ".") {
                 return setNumero(numero + teclaNumero);
             }
-            //Verificar si es diferentes a cero, no hay punto y es el primer número
-            if (teclaNumero !== '0' && !numero.includes('.')){
+
+            if (teclaNumero === "0" && numero.includes(".")) {
+                return setNumero(numero + teclaNumero);
+            }
+
+            if (teclaNumero !== "0" && !numero.includes(".")) {
                 return setNumero(teclaNumero);
             }
-            if (teclaNumero === '0' && !numero.includes('.')){
+
+            if (teclaNumero === "0" && !numero.includes(".")) {
                 return;
             }
         }
-        return setNumero( numero + teclaNumero);
-
+        return setNumero(numero + teclaNumero);
     };
-
 
     return {
         // Propiedades
-        formula, numero, numeroAnterior,
-        //Metodos
+        formula,
+        numero,
+        numeroAnterior,
+        // Métodos
         construirNumero,
         clean,
         cambiarSigno,
         borrarDigito,
-        operacionDividir,
-        operacionMultiplicar,
-        operacionRestar,
-        operacionSumar,
-        calcularResultado,
-        resultado
-    }
+        resultado,
+        realizarOperacion,
+    };
 };

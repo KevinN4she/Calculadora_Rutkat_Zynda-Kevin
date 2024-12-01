@@ -1,20 +1,25 @@
 import { Text, type TextProps, StyleSheet } from 'react-native';
+import GlobalStyles from '../Themes/GlobalStyles';
 
-interface Props extends TextProps {};
-
-export const Pantalla = ({children, ...rest}:Props) => {
-  return (
-    <Text style={styles.pantallaPrincipal} {...rest}>
-        {children}
-    </Text>
-  )
+interface Props extends TextProps {
+  size?: 'large' | 'small'; 
+  isResult?: boolean; 
+  inputColor?: string; 
 }
 
-const styles = StyleSheet.create({
-    pantallaPrincipal: {
-        fontSize: 70,
-        textAlign: 'right',
-        fontWeight:400,
-        width: '90%',
-    },
-  });
+export const Pantalla = ({ children, size = 'large', isResult = false, inputColor = '#000', ...rest }: Props) => {
+  return (
+    <Text
+      style={[
+        GlobalStyles.pantallaGrande,
+        size === 'large' && GlobalStyles.pantallaGrande,
+        isResult && GlobalStyles.pantallaResultado,
+        !isResult && { color: inputColor }, 
+      ]}
+      {...rest}
+    >
+      {children}
+    </Text>
+  );
+};
+

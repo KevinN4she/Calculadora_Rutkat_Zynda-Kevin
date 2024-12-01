@@ -1,6 +1,11 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "jsx": "react-native",         // Habilita el soporte para JSX en React Native
+    "moduleResolution": "node",  // Asegura una correcta resolución de módulos
+    "target": "ESNext",          // Usa las últimas características de ECMAScript
+    "allowSyntheticDefaultImports": true, // Permite usar `import` sin especificar `default`
+    "esModuleInterop": true      // Mejora la compatibilidad con módulos CommonJS
   }
 }
